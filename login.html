@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Campus Visitor Entry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: system-ui, sans-serif;
+  color: #e5e7eb;
+  overflow: hidden;
+}
+
+/* ===============================
+   BACKGROUND SLIDER
+================================ */
+.bg-slider {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+}
+
+.bg-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+}
+
+.bg-slide.active {
+  opacity: 1;
+}
+
+.bg-slide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: inherit;
+  background-size: cover;
+  background-position: center;
+  filter: blur(22px) brightness(0.55);
+  transform: scale(1.1);
+}
+
+.bg-slide::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: inherit;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Overlay */
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(2,6,23,0.85) 0%,
+    rgba(2,6,23,0.55) 45%,
+    rgba(2,6,23,0.85) 100%
+  );
+  z-index: -1;
+}
+
+/* ===============================
+   MAIN LAYOUT
+================================ */
+.layout {
+  display: flex;
+  height: 100vh;
+  padding-left: 6%;            /* ⭐ left space only */
+  padding-right: 2%;           /* ⭐ minimal right padding */
+}
+
+/* LEFT INFO PANEL */
+.info-panel {
+  flex: 1;
+  padding: 80px 40px 80px 0;
+  max-width: 520px;
+}
+
+.info-panel h1 {
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+}
+
+.info-panel p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #cbd5f5;
+  margin-bottom: 18px;
+}
+
+.info-panel ul {
+  padding-left: 18px;
+}
+
+.info-panel li {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+/* ===============================
+   RIGHT LOGIN PANEL
+================================ */
+.login-panel {
+  margin-left: auto;           /* ⭐ pushes it to right */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 460px;                /* ⭐ wider panel */
+  padding-right: 32px;         /* ⭐ breathing space from edge */
+}
+
+/* LOGIN CARD */
+.card {
+  width: 360px;
+  background: rgba(15,23,42,0.96);
+  padding: 28px;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+}
+
+/* Logo */
+.logo {
+  display: block;
+  margin: 0 auto 18px;
+  max-width: 220px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 18px;
+}
+
+/* Inputs */
+input, textarea, button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.9rem;
+}
+
+input, textarea {
+  background: #f8fafc;
+}
+
+textarea {
+  resize: none;
+}
+
+/* Button */
+button {
+  background: linear-gradient(90deg,#06b6d4,#7c3aed);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.error {
+  margin-top: 10px;
+  color: #f87171;
+  font-size: 0.85rem;
+  text-align: center;
+  min-height: 1em;
+}
+
+/* ===============================
+   MOBILE
+================================ */
+@media (max-width: 900px) {
+  .layout {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .info-panel {
+    padding: 20px 0;
+    max-width: 100%;
+  }
+
+  .login-panel {
+    width: 100%;
+    padding-right: 0;
+    justify-content: center;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- BACKGROUND -->
+<div class="bg-slider">
+  <div class="bg-slide active" style="background-image:url('assets/slides/butterfly2.jpg')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/lotus.jpg')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/kingfisher.jpg')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/gecko-ed.png')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/hibiscus.jpg')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/cobra-ed.png')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/duck.jpg')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/peacock-ed.png')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/butterfly11.jpg')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/opuntia-ed.png')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/russel viper.jpg')"></div>
+  <div class="bg-slide" style="background-image:url('assets/slides/ladybug.jpg')"></div>
+</div>
+
+<div class="bg-overlay"></div>
+
+<!-- CONTENT -->
+<div class="layout">
+
+  <!-- LEFT DESCRIPTION -->
+  <div class="info-panel">
+    <h1>Smart Object Explorer</h1>
+    <p>
+      Smart Object Explorer is an AI-powered campus biodiversity system designed
+      to help visitors identify and learn about birds, insects, reptiles,
+      plants, and other living organisms found within the Agastya campus.
+    </p>
+
+    <p><strong>How it works:</strong></p>
+    <ul>
+      <li>Open the application and fill in your Name, Occupation, and Reason for visit</li>
+      <li>Click “Proceed to Explorer” to start</li>
+      <li>allow camera permissions</li>
+     <li> Point the camera toward:</li>
+
+      <li>🐦 Birds</li>
+      <li>🦋 Insects</li>
+      <li>🐍 Reptiles</li>
+      <li>🌿 Plants or flowers</li>
+
+       <li>Click the 📷 Capture button</li>
+      <li>📍 Learn about biodiversity within the campus environment</li>
+    </ul>
+
+    
+  </div>
+
+  <!-- RIGHT LOGIN -->
+  <div class="login-panel">
+    <div class="card">
+      <img src="assets/logo1.avif" alt="Agastya Logo" class="logo" />
+
+      <h2>Campus Visitor Entry</h2>
+      <div class="subtitle">Explore biodiversity • Discover nature</div>
+
+      <form id="visitorForm">
+        <input id="name" placeholder="Name (used as ID)" required />
+        <input id="occupation" placeholder="Occupation" required />
+        <textarea id="reason" placeholder="Reason for visit" required></textarea>
+
+        <button type="submit">Proceed to Explorer</button>
+        <div id="errorMsg" class="error"></div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<!-- SCRIPT -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const slides = document.querySelectorAll(".bg-slide");
+  let index = 0;
+
+  setInterval(() => {
+    slides[index].classList.remove("active");
+    index = (index + 1) % slides.length;
+    slides[index].classList.add("active");
+  }, 3000);
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const form = document.getElementById("visitorForm");
+  const errorMsg = document.getElementById("errorMsg");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const occupation = document.getElementById("occupation").value.trim();
+    const reason = document.getElementById("reason").value.trim();
+
+    if (!name || !occupation || !reason) {
+      errorMsg.textContent = "Please fill all fields.";
+      return;
+    }
+
+    // ✅ STORE LOGIN SESSION
+    localStorage.setItem("visitorName", name);
+    localStorage.setItem("occupation", occupation);
+    localStorage.setItem("visitReason", reason);
+
+    // ✅ REDIRECT
+    window.location.href = "index.html";
+  });
+
+});
+</script>
+
+
+</body>
+</html>

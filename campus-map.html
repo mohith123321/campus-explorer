@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Campus Navigation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin: 0;
+  background: #020617;
+  font-family: system-ui, sans-serif;
+  color: #e5e7eb;
+}
+
+header {
+  height: 56px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #020617;
+  border-bottom: 1px solid rgba(148,163,184,0.25);
+}
+
+header h1 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+header button {
+  background: linear-gradient(90deg,#06b6d4,#7c3aed);
+  border: none;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#map-wrapper {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 56px);
+  background: #93d7e5;
+  overflow: hidden;
+}
+
+#map-img {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  max-width: 100%;
+  max-height: 100%;
+  z-index: 1;
+}
+
+#routeCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.building-btn {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -100%);
+  background: rgba(15,23,42,0.92);
+  border: 1px solid rgba(148,163,184,0.45);
+  border-radius: 14px;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.building-btn.selected {
+  background: #22c55e;
+  color: #020617;
+  font-weight: 700;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🗺 Campus Navigation</h1>
+  <button onclick="location.href='index.html'">← Back</button>
+</header>
+
+<div id="map-wrapper">
+  <img id="map-img" src="campus-map-img.jpg">
+  <canvas id="routeCanvas"></canvas>
+</div>
+
+<script>
+/* ================= IMAGE ORIGINAL SIZE ================= */
+const ORIGINAL_WIDTH  = 1754;
+const ORIGINAL_HEIGHT = 703;
+
+/* ================= WALKING PATH ================= */
+const path_NAITANI_JUNJUNWALA = [
+  {x:286,y:379},{x:303,y:392},{x:315,y:402},{x:326,y:417},{x:328,y:436},
+  {x:341,y:450},{x:353,y:466},{x:364,y:484},{x:379,y:497},{x:400,y:509},
+  {x:421,y:513},{x:441,y:512},{x:464,y:517},{x:419,y:519},{x:512,y:509},
+  {x:530,y:499},{x:550,y:480},{x:575,y:457},{x:596,y:436},{x:628,y:445},
+  {x:656,y:449},{x:690,y:460},{x:726,y:463},{x:720,y:439},{x:706,y:400},
+  {x:671,y:394},{x:650,y:386},{x:644,y:365},{x:657,y:342},{x:679,y:325},
+  {x:704,y:320}
+];
+
+const paths = {
+  "Naitani|Junjunwala Discovery centre": path_NAITANI_JUNJUNWALA,
+  "Junjunwala Discovery centre|Naitani": [...path_NAITANI_JUNJUNWALA].reverse()
+};
+
+/* ================= BUILDINGS ================= */
+const landmarks = [
+  { name:"Naitani", x:286, y:360 },
+  { name:"Junjunwala Discovery centre", x:704, y:300 }
+];
+
+const img = document.getElementById("map-img");
+const canvas = document.getElementById("routeCanvas");
+const ctx = canvas.getContext("2d");
+
+let start = null;
+let end = null;
+
+/* ================= RESIZE ================= */
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+/* ================= SCALE IMAGE COORDS ================= */
+function imageToScreen(px, py) {
+  const wrapper = document.getElementById("map-wrapper");
+
+  const wrapperW = wrapper.clientWidth;
+  const wrapperH = wrapper.clientHeight;
+
+  const imageRatio = ORIGINAL_WIDTH / ORIGINAL_HEIGHT;
+  const wrapperRatio = wrapperW / wrapperH;
+
+  let renderW, renderH, offsetX, offsetY;
+
+  if (wrapperRatio > imageRatio) {
+    // Image fits height
+    renderH = wrapperH;
+    renderW = renderH * imageRatio;
+    offsetX = (wrapperW - renderW) / 2;
+    offsetY = 0;
+  } else {
+    // Image fits width
+    renderW = wrapperW;
+    renderH = renderW / imageRatio;
+    offsetX = 0;
+    offsetY = (wrapperH - renderH) / 2;
+  }
+
+  const scaleX = renderW / ORIGINAL_WIDTH;
+  const scaleY = renderH / ORIGINAL_HEIGHT;
+
+  return {
+    x: offsetX + px * scaleX,
+    y: offsetY + py * scaleY
+  };
+}
+
+
+/* ================= DRAW ROUTE ================= */
+function drawRoute(path) {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = "#22c55e";
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  ctx.beginPath();
+  path.forEach((p,i)=>{
+    const s = imageToScreen(p.x,p.y);
+    if(i === 0) ctx.moveTo(s.x,s.y);
+    else ctx.lineTo(s.x,s.y);
+  });
+  ctx.stroke();
+}
+
+/* ================= CLICK LOGIC ================= */
+function handleClick(place, btn) {
+  if (!start) {
+    start = place;
+    btn.classList.add("selected");
+  } 
+  else if (!end && place !== start) {
+    end = place;
+    btn.classList.add("selected");
+
+    const key = `${start.name}|${end.name}`;
+    if (paths[key]) drawRoute(paths[key]);
+  } 
+  else {
+    resetAll();
+  }
+}
+
+function resetAll() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  document.querySelectorAll(".building-btn")
+    .forEach(b=>b.classList.remove("selected"));
+  start = end = null;
+}
+
+/* ================= CREATE BUTTONS ================= */
+img.onload = () => {
+  landmarks.forEach(place => {
+    const btn = document.createElement("div");
+    btn.className = "building-btn";
+    btn.innerText = place.name;
+
+    const pos = imageToScreen(place.x, place.y);
+    btn.style.left = pos.x + "px";
+    btn.style.top  = pos.y + "px";
+
+    btn.onclick = () => handleClick(place, btn);
+    document.body.appendChild(btn);
+  });
+};
+</script>
+
+</body>
+</html>

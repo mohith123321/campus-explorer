@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Smart Object Explorer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="theme-color" content="#050816" />
+<link rel="manifest" href="manifest.json" />
+
+<style>
+/* ---------- BASE THEME ---------- */
+:root{
+  --bg:#050816;
+  --accent1:#7c3aed;
+  --accent2:#06b6d4;
+  --accent3:#f97316;
+  --accent4:#ec4899;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --border:rgba(148,163,184,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:system-ui;
+  background:
+    radial-gradient(circle at top, rgba(96,165,250,0.18), transparent 60%),
+    radial-gradient(circle at bottom, rgba(56,189,248,0.18), transparent 60%),
+    url("camp2.jpg") center/cover fixed;
+  color:var(--text);
+  min-height:100vh;
+  padding:16px;
+}
+
+/* ---------- LAYOUT ---------- */
+.app{max-width:1100px;margin:72px auto}
+header{
+  background:rgba(5,6,17,.9);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.action-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:12px;
+}
+
+.action-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  border-radius:999px;
+  font-size:0.85rem;
+  font-weight:700;
+  text-decoration:none;
+  color:white;
+  box-shadow:0 12px 30px rgba(0,0,0,0.45);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+
+.action-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 40px rgba(0,0,0,0.6);
+}
+
+.action-primary{
+  background:linear-gradient(90deg,#06b6d4,#7c3aed);
+}
+
+.action-secondary{
+  background:linear-gradient(90deg,#22c55e,#16a34a);
+}
+
+.title{font-size:1.3rem;font-weight:700}
+.subtitle{font-size:.85rem;color:var(--muted)}
+.pill{
+  background:linear-gradient(90deg,var(--accent2),var(--accent1));
+  color:#fff;
+  border:none;
+  padding:8px 14px;
+  border-radius:999px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+/* ---------- CAMERA ---------- */
+main{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.card{
+  background:rgba(15,23,42,.9);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:14px;
+}
+.camera-frame{
+  aspect-ratio:4/3;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid var(--border);
+}
+video{width:100%;height:100%;object-fit:cover}
+canvas{display:none}
+.btn{
+  padding:8px 14px;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+}
+.btn-primary{background:linear-gradient(90deg,var(--accent2),var(--accent1));color:white}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+
+/* ---------- RESULT ---------- */
+.result-card{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  border-radius:14px;
+  overflow:hidden;
+}
+.result-image{width:100%;height:100%;object-fit:cover}
+.result-content{padding:12px}
+
+/* ---------- MODAL ---------- */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(2,6,23,.85);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+}
+.modal.hidden{display:none}
+.modal-box{
+  width:100%;
+  max-width:420px;
+  background:#020617;
+  padding:22px;
+  border-radius:18px;
+  border:1px solid var(--border);
+}
+.modal-box textarea,
+.modal-box select{
+  width:100%;
+  margin-top:8px;
+  padding:8px;
+  border-radius:8px;
+  border:none;
+}
+
+/* ---------- MOBILE ---------- */
+@media(max-width:900px){
+  main{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<button class="btn btn-primary" onclick="window.location.href='campus-map.html'">
+  🗺️ Campus Map
+</button>
+
+
+<script>
+/* LOGIN GUARD */
+if(!localStorage.getItem("visitorName")){
+  window.location.href="login.html";
+}
+</script>
+
+<div class="app">
+
+<header>
+  <div>
+    <div class="title">Smart Object Explorer</div>
+    <div class="subtitle">Campus biodiversity detection</div>
+  </div>
+  <button class="pill" onclick="openExperience()">📝 Visitors Experience</button>
+</header>
+
+<main>
+  <!-- CAMERA -->
+  <section class="card">
+    <div class="camera-frame">
+      <video id="camera" autoplay playsinline muted></video>
+      <canvas id="captureCanvas"></canvas>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="flipCamera()">🔁 Flip</button>
+      <button class="btn btn-primary" onclick="capture()">📷 Capture</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="card">
+    <div id="result">No capture yet.</div>
+  </section>
+</main>
+</div>
+
+<!-- VISITORS EXPERIENCE MODAL -->
+<div id="experienceModal" class="modal hidden">
+  <div class="modal-box">
+    <h3>Visitors Experience</h3>
+
+    <label>Rating</label>
+    <select id="rating">
+      <option>⭐ ⭐ ⭐ ⭐ ⭐</option>
+      <option>⭐ ⭐ ⭐ ⭐</option>
+      <option>⭐ ⭐ ⭐</option>
+    </select>
+
+    <textarea id="feedback" placeholder="Your feedback"></textarea>
+
+    <label>Did you enjoy your visit?</label>
+    <select id="enjoyed" onchange="toggleImprove(this.value)">
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <textarea id="improve" placeholder="What can be improved?" style="display:none"></textarea>
+
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="submitExperience()">Submit</button>
+      <button class="btn btn-ghost" onclick="closeExperience()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- CAMERA + MODEL ---------- */
+const API_URL="https://vigneshragrahar-species.hf.space/predict";
+let stream=null,front=false;
+
+async function startCamera(){
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:front?"user":"environment"}});
+  camera.srcObject=stream;
+}
+startCamera();
+
+function flipCamera(){
+  front=!front;
+  stream.getTracks().forEach(t=>t.stop());
+  startCamera();
+}
+
+function capture(){
+  const ctx=captureCanvas.getContext("2d");
+  captureCanvas.width=camera.videoWidth;
+  captureCanvas.height=camera.videoHeight;
+  ctx.drawImage(camera,0,0);
+  captureCanvas.toBlob(async blob=>{
+    const fd=new FormData();
+    fd.append("file",blob,"img.jpg");
+    const res=await fetch(API_URL,{method:"POST",body:fd});
+    const data=await res.json();
+    showResult(data);
+  });
+}
+
+function showResult(data){
+  const s=data.top1;
+  result.innerHTML=`
+  <div class="result-card">
+    <img class="result-image" src="${captureCanvas.toDataURL()}">
+    <div class="result-content">
+      <h3>${s.species}</h3>
+      <p>Confidence: ${(s.confidence*100).toFixed(1)}%</p>
+      <div class="action-buttons">
+  <a class="action-btn action-primary"
+     href="species.html?name=${encodeURIComponent(s.species)}"
+     target="_blank">
+     🔍 View Species Card
+  </a>
+
+  <a class="action-btn action-secondary"
+     href="https://en.wikipedia.org/wiki/${encodeURIComponent(s.species)}"
+     target="_blank">
+     📚 View on Wikipedia
+  </a>
+</div>
+
+    </div>
+  </div>`;
+}
+
+/* ---------- EXPERIENCE ---------- */
+function openExperience(){experienceModal.classList.remove("hidden")}
+function closeExperience(){experienceModal.classList.add("hidden")}
+function toggleImprove(v){improve.style.display=v==="no"?"block":"none"}
+
+async function submitExperience(){
+  await fetch("http://localhost:5000/api/experience/submit",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      name:localStorage.getItem("visitorName"),
+      rating:rating.value,
+      feedback:feedback.value,
+      enjoyed:enjoyed.value,
+      improvement:improve.value
+    })
+  });
+  alert("Thank you for your feedback!");
+  closeExperience();
+}
+</script>
+
+</body>
+</html>
